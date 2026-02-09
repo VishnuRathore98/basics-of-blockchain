@@ -56,7 +56,7 @@ try:
     w3 = Web3(provider=Web3.HTTPProvider(endpoint_uri=os.environ.get("ENDPOINT_URI")))
 
     # Chain ID prevents replay attacks
-    chain_id = 1337
+    chain_id = 11155111
 
     # The address will send the deployment transaction
     my_address = os.environ.get("MY_ADDRESS")
@@ -77,6 +77,8 @@ try:
 
     # Building the Deployment Transaction
 
+    print("Deploying contract...")
+
     # 1. Build a transanction
     transaction = SimpleStorage.constructor().build_transaction(
         {"chainId": chain_id, "from": my_address, "nonce": nonce}
@@ -95,20 +97,34 @@ try:
     tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
     # print("4. Trasaction receipt: ", tx_receipt)
 
+    print("Contract deployed!")
+
+    # Updating contract
+
+    print("Updating contract...")
+
+    # Bind to Deployed Contract
     simple_storage = w3.eth.contract(address=tx_receipt.contractAddress, abi=abi)
 
+    # Build store(10) Transaction
     store_transaction = simple_storage.functions.store(10).build_transaction(
         {"chainId": chain_id, "from": my_address, "nonce": nonce + 1}
     )
 
+    # Sign Transaction
     signed_store_txn = w3.eth.account.sign_transaction(
         store_transaction, private_key=private_key
     )
 
+    # Send and update Transaction state
     send_store_tx = w3.eth.send_raw_transaction(signed_store_txn.raw_transaction)
 
+    # Wait for Transaction receipt
     store_tx_receipt = w3.eth.wait_for_transaction_receipt(send_store_tx)
 
+    print("Contract Updated!")
+
+    # Read Transaction state
     print(simple_storage.functions.retrieve().call())
 
     print("Transaction completed!")
