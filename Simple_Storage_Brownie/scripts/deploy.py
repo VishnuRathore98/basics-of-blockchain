@@ -6,7 +6,7 @@ from brownie import accounts, config, SimpleStorage
 
 load_dotenv()
 
-
+# This code deploys the simple storage
 def deploy_simple_storage():
     account = accounts[0]
     simple_storage = SimpleStorage.deploy({"from": account})
